@@ -30,7 +30,7 @@ export class Apimdb extends Streamer {
                 const dataSrc: string = server.attribs["data-src"];
                 const text: string = server.name;
 
-                return {url: "eeee", init: {"data-src": dataSrc, "text": text}};
+                return {url: text, init: {"data-src": dataSrc, "text": text}};
             }
             return Promise.reject("No server in the HTML were found.");
         } else {
