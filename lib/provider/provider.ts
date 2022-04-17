@@ -6,9 +6,9 @@ export abstract class Provider {
         this.name = name;
     }
 
-    abstract provideMovie(title: string, theMovieDBId: number): Promise<{ url: string, init: HeadersInit }>;
+    abstract provideMovie(title: string, theMovieDBId: number): Promise<{ url: string, init: HeadersInit, needsFurtherExtraction: boolean }>;
 
-    abstract provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string, init: HeadersInit }>;
+    abstract provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string, init: HeadersInit, needsFurtherExtraction: boolean }>;
 
     abstract checkMovieAvailability(title: string, theMovieDBId: number): Promise<Boolean>;
 

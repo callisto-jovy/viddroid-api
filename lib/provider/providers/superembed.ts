@@ -1,5 +1,6 @@
-import {Provider} from "../../provider";
+import {Provider} from "../provider";
 import fetch from "cross-fetch";
+import {Streamers} from "../../streamer/streamers";
 
 const baseURL: string = "https://seapi.link/?type=tmdb&max_results=1&id=";
 
@@ -13,20 +14,21 @@ function formatTVRequest(tvID: number, season: number, episode: number): string 
 
 function getSuperEmbedLink(apiReferral: string): Promise<string> {
     return fetch(apiReferral)
-        .then(value => value
-            .json()
-            .then(value1 => {
-                    const servers: [] = value1["results"]
-                        .sort((e: any) => e["quality"])
-                        .filter((e: any) => e["server"] !== "doodstream" && e["server"] !== "streamtape");
-                    if (servers.length >= 1) {
-                        // @ts-ignore
-                        return servers[0]["url"];
-                    } else {
-                        return Promise.reject("No results found. @superembed");
+        .then(value =>
+            value
+                .json()
+                .then(value1 => {
+                        const servers: [] = value1["results"]
+                            .sort((e: any) => e["quality"])
+                            .filter((e: any) => e["server"] !== "doodstream" && e["server"] !== "streamtape");
+                        if (servers.length >= 1) {
+                            // @ts-ignore
+                            return servers[0]["url"];
+                        } else {
+                            return Promise.reject("No results found. @superembed");
+                        }
                     }
-                }
-            ).catch(reason => Promise.reject(reason))
+                ).catch(reason => Promise.reject(reason))
         ).catch(reason => Promise.reject(reason));
 }
 
@@ -56,14 +58,14 @@ export class Superembed extends Provider {
             .catch(() => Promise.reject("Exception caused when checking superembed api"));
     }
 
-    async provideMovie(title: string, theMovieDBId: number): Promise<{ url: string; init: HeadersInit }> {
+    async provideMovie(title: string, theMovieDBId: number): Promise<{ url: string; init: HeadersInit, needsFurtherExtraction: boolean }> {
         const url = formatMovieRequest(theMovieDBId);
-        return Promise.resolve({init: {}, url: await getSuperEmbedLink(url)});
+        return (new Streamers.SUPER_STREAM.streamer).resolveStreamURL(await getSuperEmbedLink(url));
     }
 
-    async provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string; init: HeadersInit }> {
+    async provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string; init: HeadersInit, needsFurtherExtraction: boolean }> {
         const url = formatTVRequest(theMovieDBId, season, episode);
-        return Promise.resolve({init: {}, url: await getSuperEmbedLink(url)});
+        return (new Streamers.SUPER_STREAM.streamer).resolveStreamURL(await getSuperEmbedLink(url));
     }
 
 }

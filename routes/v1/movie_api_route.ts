@@ -21,22 +21,18 @@ router.get("/", async function (req, res, next) {
             if (excludedProviders != undefined && excludedProviders.includes(value.providerName)) {
                 continue;
             }
-
             if (await value.checkMovieAvailability(title, movieID)) {
                 return value.provideMovie(title, movieID)
-                    .then(payload => {
-                        return {
-                            payload: payload,
-                            status_code: 200
-                        }
-                    }).catch(reason => {
-                        return {
-                            error: reason,
-                            status_code: 500,
-                        }
-                    });
+                    .then(payload => ({
+                        payload: payload,
+                        status_code: 200
+                    })).catch(reason => ({
+                        error: reason,
+                        status_code: 500,
+                    }));
             }
         }
+        return Promise.reject(`No suitable provider found for ${title} with id ${movieID}`);
     }
     res.json(await response());
 });
@@ -69,15 +65,12 @@ router.get("/:provider", async function (req, res, next) {
                 }
 
                 return value.provideMovie(title, movieID)
-                    .then(payload => {
-                        return {
-                            payload: payload,
-                            status_code: 200
-                        }
-                    });
+                    .then(payload => ({
+                        payload: payload,
+                        status_code: 200
+                    }));
             }
         }
-
         return Promise.reject("Provider not found.");
     }
     res.json(await response().catch(reason => ({error: reason, status_code: 500})));

@@ -6,7 +6,7 @@ export abstract class Streamer {
         this.name = name;
     }
 
-    abstract resolveStreamURL(referral?: string, init?: HeadersInit): Promise<{ url: string, init: HeadersInit }>;
+    abstract resolveStreamURL(referral?: string, init?: HeadersInit): Promise<{ url: string, init: HeadersInit, needsFurtherExtraction: boolean}>;
 
     get streamerName(): string {
         return this.name;

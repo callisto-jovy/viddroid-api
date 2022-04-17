@@ -1,7 +1,7 @@
 import cheerio from "cheerio";
-import {Streamers} from "../../../streamer/streamers";
-import {Provider} from "../../provider";
-import {fetchURL} from "../../../util/wrapper";
+import {Streamers} from "../../streamer/streamers";
+import {Provider} from "../provider";
+import {fetchURL} from "../../util/wrapper";
 
 const baseURL: string = 'https://www1.123movies.co';
 
@@ -27,7 +27,7 @@ export class MoviesCo extends Provider {
         super('moviesco');
     }
 
-    async provideMovie(title: string, theMovieDBId: number): Promise<{ url: string; init: HeadersInit }> {
+    async provideMovie(title: string, theMovieDBId: number): Promise<{ url: string; init: HeadersInit, needsFurtherExtraction: boolean }> {
         const url: string = formatMovieRequest(title);
 
         const value = await fetchURL(url)
@@ -36,14 +36,14 @@ export class MoviesCo extends Provider {
         if (value.status === 200) {
             return await value.text().then(textValue => {
                 let $ = cheerio.load(textValue);
-                return Streamers.GOMO.resolveStreamURL($("iframe").first().attr("src"));
+                return (new Streamers.GOMO.streamer).resolveStreamURL($("iframe").first().attr("src"));
             });
         } else {
             return Promise.reject("Movies.co returned with a statuscode != 200");
         }
     }
 
-    async provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string; init: HeadersInit }> {
+    async provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string; init: HeadersInit, needsFurtherExtraction: boolean }> {
         const url: string = formatTvRequest(title, season, episode);
 
         const value = await fetchURL(url)
@@ -52,7 +52,7 @@ export class MoviesCo extends Provider {
         if (value.status === 200) {
             return await value.text().then(textValue => {
                 let $ = cheerio.load(textValue);
-                return Streamers.GOMO.resolveStreamURL($(".playerLock > iframe").first().attr("src"));
+                return (new Streamers.GOMO.streamer).resolveStreamURL($(".playerLock > iframe").first().attr("src"));
             });
         }
         return Promise.reject("Movies.co returned with a statuscode != 200");

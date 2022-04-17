@@ -12,4 +12,4 @@ export function fetchURL(url: string, headers?: HeadersInit): Promise<Response> 
     });
 }
 
-export const sourceRegex = RegExp(/(?<=sources:\[{file:")[^"]+/g);
+export const sourceRegex: RegExp = /(?<=sources:\[{file:")[^"]+/g;

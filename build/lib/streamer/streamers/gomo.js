@@ -13,97 +13,122 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Gomo = void 0;
-const movies_co_1 = require("../../providers/moviesco/movies_co");
+const wrapper_1 = require("../../util/wrapper");
 const cross_fetch_1 = __importDefault(require("cross-fetch"));
 const cheerio_1 = __importDefault(require("cheerio"));
 const unpacker_1 = require("unpacker");
 require("../streamer");
-class Gomo {
+const streamer_1 = require("../streamer");
+//TODO: Move into class, create new objects every time.
+class Gomo extends streamer_1.Streamer {
+    constructor() {
+        super("gomo");
+        this.tcExpr = /var tc = '(.+)';/;
+        this.tokenRegex = /"_token": "(.+)"/g;
+        this.functionRegex = /function (.*? { (.*)+})/gm;
+        this.sliceRegex = /slice\s*\(\s*(\d)\s*,\s*(\d+)\)/g;
+        this.rndNumRegex = /\+ "(\d+)"\s*\+\s*"(\d+)"/g;
+        this.decodingAPI = "https://gomo.to/decoding_v3.php";
+    }
     resolveStreamURL(referral, init) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!referral) {
-                return Promise.reject('referral is empty');
+                return Promise.reject("Referral is non-existent");
             }
-            init !== null && init !== void 0 ? init : (init = { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36' });
-            let response = yield (0, cross_fetch_1.default)(referral, {
-                headers: init
-            });
+            init !== null && init !== void 0 ? init : (init = { "User-Agent": (0, wrapper_1.getUserAgent)() });
+            const response = yield (0, wrapper_1.fetchURL)(referral, init);
             if (response.status === 200) {
-                let textValue = yield response.text();
-                let tcMatch = movies_co_1.tcExpr.exec(textValue);
-                let tokenMatch = movies_co_1.tokenRegex.exec(textValue);
-                let funcMatch = movies_co_1.functionRegex.exec(textValue);
-                if (tcMatch != null && tokenMatch != null && funcMatch != null) {
-                    let tcGroup = tcMatch[1];
-                    let tokenGroup = tokenMatch[0];
-                    let sliceMatch = movies_co_1.sliceRegex.exec(textValue);
-                    let rndNumberMatch = movies_co_1.rndNumRegex.exec(textValue);
-                    if (sliceMatch != null) {
-                        let sliceStart = sliceMatch[1];
-                        let sliceEnd = sliceMatch[2];
-                        let xToken = tcGroup
-                            .substring(parseInt(sliceStart), parseInt(sliceEnd))
-                            .split('')
-                            .reverse()
-                            .join('');
-                        if (rndNumberMatch != null) {
-                            xToken += rndNumberMatch.slice(1).join('');
-                        }
-                        let decodingAPIResponse = yield (0, cross_fetch_1.default)(movies_co_1.decodingAPI, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
-                                'x-token': xToken,
-                                'Referrer': referral,
-                            },
-                            body: `tokenCode=${tcGroup}&_token=${tokenGroup}`
-                        });
-                        if (decodingAPIResponse.status === 200) {
-                            let json = yield decodingAPIResponse.json();
-                            for (let i = 0; i < json.length; i++) {
-                                let redirect = json[i];
-                                if (redirect.startsWith('https://gomo')) {
-                                    let redirectResponse = yield (0, cross_fetch_1.default)(redirect, { headers: init });
-                                    if (redirectResponse.status === 200) {
-                                        let redirectResponseText = yield redirectResponse.text();
-                                        let $ = cheerio_1.default.load(redirectResponseText);
-                                        let packed = $('script').filter((i, el) => $(el).html() == null ? false : $(el).html().startsWith('eval'))
-                                            .html();
-                                        if (packed == null) {
-                                            return Promise.reject('No packed js found');
-                                        }
-                                        if ((0, unpacker_1.detect)(packed)) {
-                                            let unpacked = (0, unpacker_1.unpack)(packed);
-                                            let sourceMatch = movies_co_1.sourceRegex.exec(unpacked);
-                                            if (sourceMatch != null) {
-                                                console.log(sourceMatch);
-                                                return { url: sourceMatch[0], init: { 'Referrer': redirect } };
-                                            }
-                                        }
-                                        else {
-                                            return Promise.reject('Packer did not find packed js');
+                const textValue = yield response.text();
+                //Reset regular expressions
+                /*
+                tcExpr.lastIndex = 0;
+                tokenRegex.lastIndex = 0;
+                functionRegex.lastIndex = 0;
+                sliceRegex.lastIndex = 0;
+                rndNumRegex.lastIndex = 0;
+    
+                 */
+                const tcMatch = this.tcExpr.exec(textValue);
+                const tokenMatch = this.tokenRegex.exec(textValue);
+                const funcMatch = this.functionRegex.exec(textValue);
+                if (tcMatch == null) {
+                    return Promise.reject("TC match is null.");
+                }
+                else if (tokenMatch == null) {
+                    console.log(textValue);
+                    return Promise.reject("Token match is null." + textValue);
+                }
+                else if (funcMatch == null) {
+                    return Promise.reject("Function match is null.");
+                }
+                const tcGroup = tcMatch[1];
+                const tokenGroup = tokenMatch[0];
+                const sliceMatch = this.sliceRegex.exec(textValue);
+                const rndNumberMatch = this.rndNumRegex.exec(textValue);
+                if (sliceMatch != null) {
+                    const sliceStart = sliceMatch[1];
+                    const sliceEnd = sliceMatch[2];
+                    let xToken = tcGroup
+                        .substring(parseInt(sliceStart), parseInt(sliceEnd))
+                        .split('')
+                        .reverse()
+                        .join('');
+                    if (rndNumberMatch != null) {
+                        xToken += rndNumberMatch.slice(1).join('');
+                    }
+                    const decodingAPIResponse = yield (0, cross_fetch_1.default)(this.decodingAPI, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                            "User-Agent": (0, wrapper_1.getUserAgent)(),
+                            "x-token": xToken,
+                            Referrer: referral,
+                        },
+                        body: `tokenCode=${tcGroup}&_token=${tokenGroup}`
+                    });
+                    if (decodingAPIResponse.status === 200) {
+                        const json = yield decodingAPIResponse.json();
+                        for (let i = 0; i < json.length; i++) {
+                            const redirect = json[i];
+                            if (redirect.startsWith('https://gomo')) {
+                                const redirectResponse = yield (0, cross_fetch_1.default)(redirect, { headers: init });
+                                if (redirectResponse.status === 200) {
+                                    const redirectResponseText = yield redirectResponse.text();
+                                    const $ = cheerio_1.default.load(redirectResponseText);
+                                    const packed = $("script").filter((i, el) => $(el).html() == null ? false : $(el).html().startsWith('eval'))
+                                        .html();
+                                    if (packed == null) {
+                                        return Promise.reject("No packed js found");
+                                    }
+                                    if ((0, unpacker_1.detect)(packed)) {
+                                        const unpacked = (0, unpacker_1.unpack)(packed);
+                                        const sourceMatch = wrapper_1.sourceRegex.exec(unpacked);
+                                        if (sourceMatch != null) {
+                                            return { url: sourceMatch[0], init: { "Referrer": redirect } };
                                         }
                                     }
                                     else {
-                                        return Promise.reject(`Redirect rejected request with SC ${redirectResponse.status}`);
+                                        return Promise.reject("Packer did not find packed js");
                                     }
+                                }
+                                else {
+                                    return Promise.reject(`Redirect rejected request with SC ${redirectResponse.status}`);
                                 }
                             }
                         }
-                        else {
-                            return Promise.reject(`decoding api rejected the request with SC ${decodingAPIResponse.status}`);
-                        }
+                    }
+                    else {
+                        return Promise.reject(`decoding api rejected the request with SC ${decodingAPIResponse.status}`);
                     }
                 }
                 else {
-                    return Promise.reject('regex returned null');
+                    return Promise.reject("Slice match is null :" + textValue);
                 }
             }
             else {
                 return Promise.reject(`referral rejected the request with SC ${response.status}`);
             }
-            return Promise.reject('Case failed');
+            return Promise.reject("Case failed");
         });
     }
 }

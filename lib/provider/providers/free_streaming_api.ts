@@ -46,7 +46,7 @@ export class FreeStreamingApi extends Provider {
             .catch(reason => Promise.reject(reason));
     }
 
-    async provideMovie(title: string, theMovieDBId: number): Promise<{ url: string; init: HeadersInit }> {
+    async provideMovie(title: string, theMovieDBId: number): Promise<{ url: string; init: HeadersInit, needsFurtherExtraction: boolean }> {
         const url = formatMovieRequest(theMovieDBId);
 
         const apiResult: string = await getFreeSteamingAPILink(url)
@@ -66,10 +66,10 @@ export class FreeStreamingApi extends Provider {
         }).catch(reason => Promise.reject("Failed to fetch gogoplay with reason: " + reason));
 
 
-        return {url: fetchReferral.url, init: fetchReferral.headers};
+        return {url: fetchReferral.url, init: fetchReferral.headers, needsFurtherExtraction: true};
     }
 
-    async provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string; init: HeadersInit }> {
+    async provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string; init: HeadersInit, needsFurtherExtraction: boolean }> {
         const url = formatTVRequest(theMovieDBId, season, episode);
 
         const apiResult: string = await getFreeSteamingAPILink(url)
@@ -88,7 +88,7 @@ export class FreeStreamingApi extends Provider {
             }
         }).catch(reason => Promise.reject("Failed to fetch gogoplay with reason: " + reason));
 
-        return {url: fetchReferral.url, init: fetchReferral.headers};
+        return {url: fetchReferral.url, init: fetchReferral.headers, needsFurtherExtraction: true};
     }
 
 }

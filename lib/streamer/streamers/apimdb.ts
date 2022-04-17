@@ -9,9 +9,9 @@ export class Apimdb extends Streamer {
         super("apimdb");
     }
 
-    async resolveStreamURL(referral?: string, init?: HeadersInit): Promise<{ url: string; init: HeadersInit }> {
+    async resolveStreamURL(referral?: string, init?: HeadersInit): Promise<{ url: string; init: HeadersInit, needsFurtherExtraction: boolean }> {
         if (!referral) {
-            return Promise.reject("Referral is empty");
+            return Promise.reject("Referral is non-existent");
         }
 
         const firstStageResponse: Response = await fetch(referral, {
@@ -30,7 +30,7 @@ export class Apimdb extends Streamer {
                 const dataSrc: string = server.attribs["data-src"];
                 const text: string = server.name;
 
-                return {url: text, init: {"data-src": dataSrc, "text": text}};
+                return {url: text, init: {"data-src": dataSrc, "text": text}, needsFurtherExtraction: true};
             }
             return Promise.reject("No server in the HTML were found.");
         } else {

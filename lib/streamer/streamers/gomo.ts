@@ -6,33 +6,28 @@ import "../streamer";
 import {Streamer} from "../streamer";
 
 
-const tcExpr: RegExp = /var tc = '(.+)';/;
-
-
-const tokenRegex: RegExp = /"_token": "(.+)"/g;
-
-
-const functionRegex: RegExp = /function (.*? { (.*)+})/gm;
-
-
-const sliceRegex: RegExp = /slice\s*\(\s*(\d)\s*,\s*(\d+)\)/g;
-
-
-const rndNumRegex: RegExp = /\+ "(\d+)"\s*\+\s*"(\d+)"/g;
-
-
-const decodingAPI: string = "https://gomo.to/decoding_v3.php";
-
-
+//TODO: Move into class, create new objects every time.
 export class Gomo extends Streamer {
 
     constructor() {
         super("gomo");
     }
 
-    async resolveStreamURL(referral?: string, init?: HeadersInit): Promise<{ url: string, init: HeadersInit }> {
-        if (!referral) {
-            return Promise.reject("referral is empty");
+    tcExpr: RegExp = /var tc = '(.+)';/;
+
+    tokenRegex: RegExp = /"_token": "(.+)"/g;
+
+    functionRegex: RegExp = /function (.*? { (.*)+})/gm;
+
+    sliceRegex: RegExp = /slice\s*\(\s*(\d)\s*,\s*(\d+)\)/g;
+
+    rndNumRegex: RegExp = /\+ "(\d+)"\s*\+\s*"(\d+)"/g;
+
+    decodingAPI: string = "https://gomo.to/decoding_v3.php";
+
+    async resolveStreamURL(referral?: string, init?: HeadersInit): Promise<{ url: string, init: HeadersInit, needsFurtherExtraction: boolean }> {
+        if(!referral) {
+            return Promise.reject("Referral is non-existent");
         }
 
         init ??= {"User-Agent": getUserAgent()};
@@ -43,15 +38,18 @@ export class Gomo extends Streamer {
             const textValue: string = await response.text();
 
             //Reset regular expressions
+            /*
             tcExpr.lastIndex = 0;
             tokenRegex.lastIndex = 0;
             functionRegex.lastIndex = 0;
             sliceRegex.lastIndex = 0;
             rndNumRegex.lastIndex = 0;
 
-            const tcMatch = tcExpr.exec(textValue);
-            const tokenMatch = tokenRegex.exec(textValue);
-            const funcMatch = functionRegex.exec(textValue);
+             */
+
+            const tcMatch = this.tcExpr.exec(textValue);
+            const tokenMatch = this.tokenRegex.exec(textValue);
+            const funcMatch = this.functionRegex.exec(textValue);
 
             if (tcMatch == null) {
                 return Promise.reject("TC match is null.");
@@ -64,8 +62,8 @@ export class Gomo extends Streamer {
 
             const tcGroup: string = tcMatch[1];
             const tokenGroup: string = tokenMatch[0];
-            const sliceMatch = sliceRegex.exec(textValue);
-            const rndNumberMatch = rndNumRegex.exec(textValue);
+            const sliceMatch = this.sliceRegex.exec(textValue);
+            const rndNumberMatch = this.rndNumRegex.exec(textValue);
             if (sliceMatch != null) {
                 const sliceStart: string = sliceMatch[1];
                 const sliceEnd: string = sliceMatch[2];
@@ -79,8 +77,7 @@ export class Gomo extends Streamer {
                 if (rndNumberMatch != null) {
                     xToken += rndNumberMatch.slice(1).join('');
                 }
-
-                const decodingAPIResponse = await fetch(decodingAPI, {
+                const decodingAPIResponse = await fetch(this.decodingAPI, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -118,7 +115,7 @@ export class Gomo extends Streamer {
                                     const sourceMatch = sourceRegex.exec(unpacked);
 
                                     if (sourceMatch != null) {
-                                        return {url: sourceMatch[0], init: {"Referrer": redirect}};
+                                        return {url: sourceMatch[0], init: {"Referrer": redirect}, needsFurtherExtraction: false};
                                     }
                                 } else {
                                     return Promise.reject("Packer did not find packed js");

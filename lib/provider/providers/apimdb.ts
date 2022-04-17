@@ -1,6 +1,6 @@
-import {Provider} from "../../provider";
-import {Streamers} from "../../../streamer/streamers";
-import {fetchURL, getUserAgent} from "../../../util/wrapper";
+import {Provider} from "../provider";
+import {Streamers} from "../../streamer/streamers";
+import {fetchURL, getUserAgent} from "../../util/wrapper";
 
 const baseURL: string = "https://v2.apimdb.net";
 const movieEndpoint: string = "/e/tmdb/movie/";
@@ -36,14 +36,17 @@ export class Apimdb extends Provider {
             .catch(() => false);
     }
 
-    provideMovie(title: string, theMovieDBId: number): Promise<{ url: string; init: HeadersInit }> {
+    provideMovie(title: string, theMovieDBId: number): Promise<{ url: string; init: HeadersInit, needsFurtherExtraction: boolean }> {
         const url: string = formatMovieRequest(theMovieDBId);
-        return Streamers.API_MDB.resolveStreamURL(url, {"Referrer": url, "User-Agent": getUserAgent()});
+        return (new Streamers.API_MDB.streamer).resolveStreamURL(url, {
+            "Referrer": "https://apimdb.net/",
+            "User-Agent": getUserAgent()
+        });
     }
 
-    provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string; init: HeadersInit }> {
+    provideTV(title: string, theMovieDBId: number, season: number, episode: number): Promise<{ url: string; init: HeadersInit , needsFurtherExtraction: boolean}> {
         const url: string = formatTVRequest(theMovieDBId, season, episode);
-        return Streamers.API_MDB.resolveStreamURL(url, {
+        return (new Streamers.API_MDB.streamer).resolveStreamURL(url, {
             "Referrer": "https://apimdb.net/",
             "User-Agent": getUserAgent()
         });

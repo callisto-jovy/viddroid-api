@@ -1,6 +1,7 @@
-import {MoviesCo} from "./providers/moviesco/movies_co";
-import {Apimdb} from "./providers/apimdb/apimdb";
-import {Superembed} from "./providers/superembed/superembed";
+import {MoviesCo} from "./providers/movies_co";
+import {Apimdb} from "./providers/apimdb";
+import {Superembed} from "./providers/superembed";
+import {FreeStreamingApi} from "./providers/free_streaming_api";
 
 export class Providers {
 
@@ -8,5 +9,6 @@ export class Providers {
         new MoviesCo,
         new Apimdb,
         new Superembed,
+        new FreeStreamingApi,
     ];
 }
