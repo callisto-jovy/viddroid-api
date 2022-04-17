@@ -91,8 +91,6 @@ export class Gomo extends Streamer {
                 if (decodingAPIResponse.status === 200) {
                     const json: [] = await decodingAPIResponse.json();
 
-                    console.log(json);
-
                     for (let i = 0; i < json.length; i++) {
                         const redirect: string = json[i];
 
