@@ -6,15 +6,20 @@ import "../streamer";
 import {Streamer} from "../streamer";
 
 
-const tcExpr = RegExp(/var tc = '(.+)';/);
+const tcExpr: RegExp = /var tc = '(.+)';/;
 
-const tokenRegex = RegExp(/"_token": "(.+)"/g);
 
-const functionRegex = RegExp(/function (.*? { (.*)+})/gm);
+const tokenRegex: RegExp = /"_token": "(.+)"/g;
 
-const sliceRegex = RegExp(/slice\s*\(\s*(\d)\s*,\s*(\d+)\)/g);
 
-const rndNumRegex = RegExp(/\+ "(\d+)"\s*\+\s*"(\d+)"/g);
+const functionRegex: RegExp = /function (.*? { (.*)+})/gm;
+
+
+const sliceRegex: RegExp = /slice\s*\(\s*(\d)\s*,\s*(\d+)\)/g;
+
+
+const rndNumRegex: RegExp = /\+ "(\d+)"\s*\+\s*"(\d+)"/g;
+
 
 const decodingAPI: string = "https://gomo.to/decoding_v3.php";
 
@@ -37,15 +42,23 @@ export class Gomo extends Streamer {
         if (response.status === 200) {
             const textValue: string = await response.text();
 
+            //Reset regular expressions
+            tcExpr.lastIndex = 0;
+            tokenRegex.lastIndex = 0;
+            functionRegex.lastIndex = 0;
+            sliceRegex.lastIndex = 0;
+            rndNumRegex.lastIndex = 0;
+
             const tcMatch = tcExpr.exec(textValue);
             const tokenMatch = tokenRegex.exec(textValue);
             const funcMatch = functionRegex.exec(textValue);
 
-            if(tcMatch == null) {
+            if (tcMatch == null) {
                 return Promise.reject("TC match is null.");
-            }  else if(tokenMatch == null) {
+            } else if (tokenMatch == null) {
+                console.log(textValue)
                 return Promise.reject("Token match is null." + textValue);
-            } else if(funcMatch == null) {
+            } else if (funcMatch == null) {
                 return Promise.reject("Function match is null.");
             }
 
