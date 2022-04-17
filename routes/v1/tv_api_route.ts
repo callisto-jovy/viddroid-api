@@ -68,7 +68,7 @@ router.get("/:provider", async function (req, res, next) {
 
     const response = async () => {
         for (const value of Providers.PROVIDERS) {
-            if (value.providerName == provider.slice(1)) {
+            if (value.providerName == provider) {
                 if (!await value.checkTVAvailability(title, movieID, season, episode)) {
                     return Promise.reject("Provider does not have the requested movie.");
                 }
