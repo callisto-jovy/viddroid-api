@@ -4,17 +4,17 @@ import {Providers} from "../../lib/provider/providers";
 const router = express.Router();
 
 
-router.get('/', async (req, res) => {
-    const title: any = req.query['title'];
-    const movieID: any = req.query['id'];
-    const excludedProviders: any = req.query['excluded'];
-    const season: any = req.query['season'];
-    const episode: any = req.query['episode'];
+router.get("/", async (req, res) => {
+    const title: any = req.query["title"];
+    const movieID: any = req.query["id"];
+    const excludedProviders: any = req.query["excluded"];
+    const season: any = req.query["season"];
+    const episode: any = req.query["episode"];
 
     if (!title || !movieID || !season || !episode) {
         res.json({
-            "error": "No arguments specified. Required: title & tmdb id & the episode & the season.",
-            "status_code": 404,
+            error: "No arguments specified. Required: title & tmdb id & the episode & the season.",
+            status_code: 404,
         });
         return;
     }
@@ -29,13 +29,13 @@ router.get('/', async (req, res) => {
                 return value.provideTV(title, movieID, season, episode)
                     .then(payload => {
                         return {
-                            "payload": payload,
-                            "status_code": 200
+                            payload: payload,
+                            status_code: 200
                         }
                     }).catch(reason => {
                         return {
-                            "error": reason,
-                            "status_code": 500,
+                            error: reason,
+                            status_code: 500,
                         }
                     });
             }
@@ -48,20 +48,20 @@ router.get("/:provider", async function (req, res, next) {
     const title: any = req.query["title"];
     const movieID: any = req.query["id"];
     const provider: any = req.params.provider;
-    const season: any = req.query['season'];
-    const episode: any = req.query['episode'];
+    const season: any = req.query["season"];
+    const episode: any = req.query["episode"];
 
     if (provider === undefined) {
         res.json({
-            "error": "provider needs to be specified. For all providers, request: /movie.",
-            "status_code": 404
+            error: "provider needs to be specified. For all providers, request: /movie.",
+            status_code: 404
         });
     }
 
     if (!title || !movieID || !season || !episode) {
         res.json({
-            "error": "No arguments specified. Required: title & tmdb id & the episode & the season.",
-            "status_code": 404,
+            error: "No arguments specified. Required: title & tmdb id & the episode & the season.",
+            status_code: 404,
         });
         return;
     }
@@ -76,8 +76,8 @@ router.get("/:provider", async function (req, res, next) {
                 return value.provideTV(title, movieID, season, episode)
                     .then(payload => {
                         return {
-                            "payload": payload,
-                            "status_code": 200
+                            payload,
+                            status_code: 200
                         }
                     });
             }
@@ -86,7 +86,7 @@ router.get("/:provider", async function (req, res, next) {
         return Promise.reject("Provider not found.");
     }
     res.json(await response().catch(reason => {
-        return {"error": reason, "status_code": 500}
+        return {error: reason, status_code: 500}
     }));
 });
 

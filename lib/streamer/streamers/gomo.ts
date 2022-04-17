@@ -49,83 +49,77 @@ export class Gomo extends Streamer {
                 return Promise.reject("Function match is null.");
             }
 
-            if (tcMatch != null && tokenMatch != null && funcMatch != null) {
-                const tcGroup: string = tcMatch[1];
-                const tokenGroup: string = tokenMatch[0];
+            const tcGroup: string = tcMatch[1];
+            const tokenGroup: string = tokenMatch[0];
+            const sliceMatch = sliceRegex.exec(textValue);
+            const rndNumberMatch = rndNumRegex.exec(textValue);
+            if (sliceMatch != null) {
+                const sliceStart: string = sliceMatch[1];
+                const sliceEnd: string = sliceMatch[2];
 
-                const sliceMatch = sliceRegex.exec(textValue);
-                const rndNumberMatch = rndNumRegex.exec(textValue);
+                let xToken: string = tcGroup
+                    .substring(parseInt(sliceStart), parseInt(sliceEnd))
+                    .split('')
+                    .reverse()
+                    .join('');
 
-                if (sliceMatch != null) {
-                    const sliceStart: string = sliceMatch[1];
-                    const sliceEnd: string = sliceMatch[2];
+                if (rndNumberMatch != null) {
+                    xToken += rndNumberMatch.slice(1).join('');
+                }
 
-                    let xToken: string = tcGroup
-                        .substring(parseInt(sliceStart), parseInt(sliceEnd))
-                        .split('')
-                        .reverse()
-                        .join('');
+                const decodingAPIResponse = await fetch(decodingAPI, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                        "User-Agent": getUserAgent(),
+                        "x-token": xToken,
+                        Referrer: referral,
+                    },
+                    body: `tokenCode=${tcGroup}&_token=${tokenGroup}`
+                });
 
-                    if (rndNumberMatch != null) {
-                        xToken += rndNumberMatch.slice(1).join('');
-                    }
+                if (decodingAPIResponse.status === 200) {
+                    const json: [] = await decodingAPIResponse.json();
 
-                    const decodingAPIResponse = await fetch(decodingAPI, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                            "User-Agent": getUserAgent(),
-                            "x-token": xToken,
-                            "Referrer": referral,
-                        },
-                        body: `tokenCode=${tcGroup}&_token=${tokenGroup}`
-                    });
+                    for (let i = 0; i < json.length; i++) {
+                        const redirect: string = json[i];
 
-                    if (decodingAPIResponse.status === 200) {
-                        const json: [] = await decodingAPIResponse.json();
+                        if (redirect.startsWith('https://gomo')) {
+                            const redirectResponse = await fetch(redirect, {headers: init});
 
-                        for (let i = 0; i < json.length; i++) {
-                            const redirect: string = json[i];
+                            if (redirectResponse.status === 200) {
+                                const redirectResponseText: string = await redirectResponse.text();
 
-                            if (redirect.startsWith('https://gomo')) {
-                                const redirectResponse = await fetch(redirect, {headers: init});
+                                const $ = cheerio.load(redirectResponseText);
 
-                                if (redirectResponse.status === 200) {
-                                    const redirectResponseText: string = await redirectResponse.text();
+                                const packed: string | null = $("script").filter((i, el) => $(el).html() == null ? false : $(el).html()!.startsWith('eval'))
+                                    .html();
 
-                                    const $ = cheerio.load(redirectResponseText);
+                                if (packed == null) {
+                                    return Promise.reject("No packed js found");
+                                }
 
-                                    const packed: string | null = $("script").filter((i, el) => $(el).html() == null ? false : $(el).html()!.startsWith('eval'))
-                                        .html();
+                                if (detect(packed)) {
+                                    const unpacked: string = unpack(packed);
 
-                                    if (packed == null) {
-                                        return Promise.reject("No packed js found");
-                                    }
+                                    const sourceMatch = sourceRegex.exec(unpacked);
 
-                                    if (detect(packed)) {
-                                        const unpacked: string = unpack(packed);
-
-                                        const sourceMatch = sourceRegex.exec(unpacked);
-
-                                        if (sourceMatch != null) {
-                                            return {url: sourceMatch[0], init: {"Referrer": redirect}};
-                                        }
-                                    } else {
-                                        return Promise.reject("Packer did not find packed js");
+                                    if (sourceMatch != null) {
+                                        return {url: sourceMatch[0], init: {"Referrer": redirect}};
                                     }
                                 } else {
-                                    return Promise.reject(`Redirect rejected request with SC ${redirectResponse.status}`);
+                                    return Promise.reject("Packer did not find packed js");
                                 }
+                            } else {
+                                return Promise.reject(`Redirect rejected request with SC ${redirectResponse.status}`);
                             }
                         }
-                    } else {
-                        return Promise.reject(`decoding api rejected the request with SC ${decodingAPIResponse.status}`);
                     }
                 } else {
-                    return Promise.reject("Slice match is null :" + textValue);
+                    return Promise.reject(`decoding api rejected the request with SC ${decodingAPIResponse.status}`);
                 }
             } else {
-                return Promise.reject("regex is null");
+                return Promise.reject("Slice match is null :" + textValue);
             }
         } else {
             return Promise.reject(`referral rejected the request with SC ${response.status}`);

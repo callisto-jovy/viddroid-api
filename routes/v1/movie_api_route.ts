@@ -10,8 +10,8 @@ router.get("/", async function (req, res, next) {
 
     if (title === undefined || movieID === undefined) {
         res.json({
-            "error": "No arguments specified. Required: title & tmdb id.",
-            "status_code": 404,
+            error: "No arguments specified. Required: title & tmdb id.",
+            status_code: 404,
         });
         return;
     }
@@ -26,13 +26,13 @@ router.get("/", async function (req, res, next) {
                 return value.provideMovie(title, movieID)
                     .then(payload => {
                         return {
-                            "payload": payload,
-                            "status_code": 200
+                            payload: payload,
+                            status_code: 200
                         }
                     }).catch(reason => {
                         return {
-                            "error": reason,
-                            "status_code": 500,
+                            error: reason,
+                            status_code: 500,
                         }
                     });
             }
@@ -48,15 +48,15 @@ router.get("/:provider", async function (req, res, next) {
 
     if (provider === undefined) {
         res.json({
-            "error": "provider needs to be specified. For all providers, request: /movie.",
-            "status_code": 404
+            error: "provider needs to be specified. For all providers, request: /movie.",
+            status_code: 404
         });
     }
 
     if (title === undefined || movieID === undefined) {
         res.json({
-            "error": "No arguments specified. Required: title & tmdb id.",
-            "status_code": 404,
+            error: "No arguments specified. Required: title & tmdb id.",
+            status_code: 404,
         });
         return;
     }
@@ -71,8 +71,8 @@ router.get("/:provider", async function (req, res, next) {
                 return value.provideMovie(title, movieID)
                     .then(payload => {
                         return {
-                            "payload": payload,
-                            "status_code": 200
+                            payload: payload,
+                            status_code: 200
                         }
                     });
             }
@@ -80,9 +80,7 @@ router.get("/:provider", async function (req, res, next) {
 
         return Promise.reject("Provider not found.");
     }
-    res.json(await response().catch(reason => {
-        return {"error": reason, "status_code": 500}
-    }));
+    res.json(await response().catch(reason => ({error: reason, status_code: 500})));
 });
 
 
