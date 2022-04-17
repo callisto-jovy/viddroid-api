@@ -30,7 +30,11 @@ export class SuperStream extends Streamer {
             return Promise.reject("Window src match returned with null");
         });
 
-        return Promise.resolve({init: {"Referrer": referral}, url: fastURL, needsFurtherExtraction: true});
+        return Promise.resolve({
+            init: {Referrer: referral, "User-Agent": getUserAgent()},
+            url: fastURL,
+            needsFurtherExtraction: true
+        });
     }
 
 }

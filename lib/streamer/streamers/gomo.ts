@@ -26,7 +26,7 @@ export class Gomo extends Streamer {
     decodingAPI: string = "https://gomo.to/decoding_v3.php";
 
     async resolveStreamURL(referral?: string, init?: HeadersInit): Promise<{ url: string, init: HeadersInit, needsFurtherExtraction: boolean }> {
-        if(!referral) {
+        if (!referral) {
             return Promise.reject("Referral is non-existent");
         }
 
@@ -115,7 +115,11 @@ export class Gomo extends Streamer {
                                     const sourceMatch = sourceRegex.exec(unpacked);
 
                                     if (sourceMatch != null) {
-                                        return {url: sourceMatch[0], init: {"Referrer": redirect}, needsFurtherExtraction: false};
+                                        return {
+                                            url: sourceMatch[0],
+                                            init: {Referrer: redirect, "User-Agent": getUserAgent()},
+                                            needsFurtherExtraction: false
+                                        };
                                     }
                                 } else {
                                     return Promise.reject("Packer did not find packed js");

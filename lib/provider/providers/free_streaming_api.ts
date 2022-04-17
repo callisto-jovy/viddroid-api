@@ -61,7 +61,7 @@ export class FreeStreamingApi extends Provider {
         const fetchReferral: Response = await fetch(referral, {
             headers: {
                 "User-Agent": getUserAgent(),
-                "Referrer": url
+                Referrer: url
             }
         }).catch(reason => Promise.reject("Failed to fetch gogoplay with reason: " + reason));
 
@@ -84,7 +84,7 @@ export class FreeStreamingApi extends Provider {
         const fetchReferral: Response = await fetch(referral, {
             headers: {
                 "User-Agent": getUserAgent(),
-                "Referrer": url
+                Referrer: url
             }
         }).catch(reason => Promise.reject("Failed to fetch gogoplay with reason: " + reason));
 
