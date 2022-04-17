@@ -1,7 +1,7 @@
 import express from "express";
 
 const app = express();
-const movieAPI = require("./v1/movie_api_route.ts");
+const movieAPI = require("./v1/movie_api_route");
 const streamerAPI = require("./v1/stream_api_route");
 const tvAPI = require("./v1/tv_api_route");
 

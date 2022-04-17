@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const app = (0, express_1.default)();
-const movieAPI = require('./v1/movie_api_route.ts');
+const movieAPI = require('./v1/movie_api_route');
 const streamerAPI = require('./v1/stream_api_route');
 app.use('/api/movie', movieAPI);
 app.use('/api/streamer', streamerAPI);
