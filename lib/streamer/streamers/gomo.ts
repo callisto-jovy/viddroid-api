@@ -91,6 +91,8 @@ export class Gomo extends Streamer {
                 if (decodingAPIResponse.status === 200) {
                     const json: [] = await decodingAPIResponse.json();
 
+                    console.log(json);
+
                     for (let i = 0; i < json.length; i++) {
                         const redirect: string = json[i];
 
@@ -106,7 +108,7 @@ export class Gomo extends Streamer {
                                     .html();
 
                                 if (packed == null) {
-                                    return Promise.reject("No packed js found");
+                                    continue;
                                 }
 
                                 if (detect(packed)) {
@@ -121,11 +123,8 @@ export class Gomo extends Streamer {
                                             needsFurtherExtraction: false
                                         };
                                     }
-                                } else {
-                                    return Promise.reject("Packer did not find packed js");
                                 }
-                            } else {
-                                return Promise.reject(`Redirect rejected request with SC ${redirectResponse.status}`);
+
                             }
                         }
                     }
