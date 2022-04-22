@@ -11,7 +11,7 @@ function formatMovieRequest(movieID: number): string {
 function formatTVRequest(tvID: number, season: number, episode: number): string {
     return `${baseURL}${tvID}&season=${season}&episode=${episode}`;
 }
-
+//TODO: Check if the file is actually hosted.
 function getSuperEmbedLink(apiReferral: string): Promise<string> {
     return fetch(apiReferral)
         .then(value =>

@@ -64,6 +64,7 @@ export class Gomo extends Streamer {
             const tokenGroup: string = tokenMatch[0];
             const sliceMatch = this.sliceRegex.exec(textValue);
             const rndNumberMatch = this.rndNumRegex.exec(textValue);
+
             if (sliceMatch != null) {
                 const sliceStart: string = sliceMatch[1];
                 const sliceEnd: string = sliceMatch[2];
@@ -77,9 +78,12 @@ export class Gomo extends Streamer {
                 if (rndNumberMatch != null) {
                     xToken += rndNumberMatch.slice(1).join('');
                 }
+
+
                 const decodingAPIResponse = await fetch(this.decodingAPI, {
                     method: "POST",
                     headers: {
+                        Origin: "https://gomo.to",
                         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                         "User-Agent": getUserAgent(),
                         "x-token": xToken,

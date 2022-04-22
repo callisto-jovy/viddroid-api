@@ -16,18 +16,20 @@ const express_1 = __importDefault(require("express"));
 const streamers_1 = require("../../lib/streamer/streamers");
 const wrapper_1 = require("../../lib/util/wrapper");
 const router = express_1.default.Router();
-router.get("/:streamer", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/:streamer", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const referral = req.query["url"];
     const streamer = req.params.streamer;
     const headers = (_a = req.body) === null || _a === void 0 ? void 0 : _a.headers;
     const response = () => __awaiter(void 0, void 0, void 0, function* () {
         for (let value of streamers_1.Streamers.STREAMERS) {
-            if (value.name == streamer) {
+            if (value.name == streamer || value.alias.includes(streamer)) {
                 return (new value.streamer).resolveStreamURL(referral, headers !== null && headers !== void 0 ? headers : { "User-Agent": (0, wrapper_1.getUserAgent)() });
             }
         }
+        return Promise.reject("No suitable streamer found for your request.");
     });
     res.json(yield response());
 }));
 module.exports = router;
+//# sourceMappingURL=stream_api_route.js.map

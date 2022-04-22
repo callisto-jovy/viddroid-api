@@ -1,8 +1,6 @@
 import {Gomo} from "./streamers/gomo";
 import {Apimdb} from "./streamers/apimdb";
-import {Streamer} from "./streamer";
 import {Streamsb} from "./streamers/streamsb";
-import {secureHeapUsed} from "crypto";
 import {SuperStream} from "./streamers/super_stream";
 
 export class Streamers {

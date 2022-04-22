@@ -85,3 +85,4 @@ router.get("/:provider", function (req, res, next) {
     });
 });
 module.exports = router;
+//# sourceMappingURL=movie_api_route.js.map

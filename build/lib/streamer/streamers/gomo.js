@@ -76,9 +76,11 @@ class Gomo extends streamer_1.Streamer {
                     if (rndNumberMatch != null) {
                         xToken += rndNumberMatch.slice(1).join('');
                     }
+                    console.log(referral);
                     const decodingAPIResponse = yield (0, cross_fetch_1.default)(this.decodingAPI, {
                         method: "POST",
                         headers: {
+                            Origin: "https://gomo.to",
                             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                             "User-Agent": (0, wrapper_1.getUserAgent)(),
                             "x-token": xToken,
@@ -98,21 +100,19 @@ class Gomo extends streamer_1.Streamer {
                                     const packed = $("script").filter((i, el) => $(el).html() == null ? false : $(el).html().startsWith('eval'))
                                         .html();
                                     if (packed == null) {
-                                        return Promise.reject("No packed js found");
+                                        continue;
                                     }
                                     if ((0, unpacker_1.detect)(packed)) {
                                         const unpacked = (0, unpacker_1.unpack)(packed);
                                         const sourceMatch = wrapper_1.sourceRegex.exec(unpacked);
                                         if (sourceMatch != null) {
-                                            return { url: sourceMatch[0], init: { "Referrer": redirect } };
+                                            return {
+                                                url: sourceMatch[0],
+                                                init: { Referrer: redirect, "User-Agent": (0, wrapper_1.getUserAgent)() },
+                                                needsFurtherExtraction: false
+                                            };
                                         }
                                     }
-                                    else {
-                                        return Promise.reject("Packer did not find packed js");
-                                    }
-                                }
-                                else {
-                                    return Promise.reject(`Redirect rejected request with SC ${redirectResponse.status}`);
                                 }
                             }
                         }
@@ -133,3 +133,4 @@ class Gomo extends streamer_1.Streamer {
     }
 }
 exports.Gomo = Gomo;
+//# sourceMappingURL=gomo.js.map

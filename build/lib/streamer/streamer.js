@@ -10,3 +10,4 @@ class Streamer {
     }
 }
 exports.Streamer = Streamer;
+//# sourceMappingURL=streamer.js.map
